@@ -1,0 +1,27 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de clientes",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/clientes": {
+      "get": {
+        "summary": "Lista clientes",
+        "responses": {
+          "200": {
+            "description": "Lista de clientes"
+          }
+        }
+      },
+      "post": {
+        "summary": "Crea un cliente",
+        "responses": {
+          "200": {
+            "description": "Cliente creado"
+          }
+        }
+      }
+    }
+  }
+}

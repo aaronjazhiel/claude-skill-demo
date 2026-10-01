@@ -1,0 +1,26 @@
+{
+  "titulo": "Revisión de API de clientes",
+  "contrato": "ejemplos/api-incompleta.json",
+  "resumen": "El contrato describe dos operaciones, pero aporta información insuficiente para verificar autenticación, estructura de datos y límites de consulta.",
+  "hallazgos": [
+    {
+      "prioridad": "Media",
+      "tipo": "Información faltante",
+      "hallazgo": "Autenticación no documentada",
+      "evidencia": "No existen security ni components.securitySchemes en el contrato.",
+      "recomendacion": "Confirmar el mecanismo real y documentarlo; no se puede concluir que el servicio sea público."
+    },
+    {
+      "prioridad": "Media",
+      "tipo": "Información faltante",
+      "hallazgo": "Paginación y esquemas sin documentar",
+      "evidencia": "GET /clientes no declara parámetros ni content para la respuesta 200. POST /clientes no declara requestBody.",
+      "recomendacion": "Documentar parámetros, límites y esquemas de entrada y salida."
+    }
+  ],
+  "preguntas": [
+    "¿Qué mecanismo de autenticación utiliza la API?",
+    "¿Existen límites y paginación para GET /clientes?",
+    "¿El registro en API Gateway y MuleSoft forma parte del alcance?"
+  ]
+}

@@ -363,9 +363,161 @@ Estos circulan mal en tutoriales. Si los dices mal, alguien de la audiencia te c
 
 ---
 
-## Parte 2 · Skills para APIs
+## Parte 2 · Skills para APIs — Revisar contratos OpenAPI
 
-> 🚧 Próximamente — ejemplo de skills aplicadas a flujos de desarrollo con APIs.
+### ¿Qué demuestra esta parte?
+
+Una skill más completa que la de facturación. En lugar de un archivo de texto simple, esta skill tiene:
+- Referencias con criterios de revisión del equipo
+- Una plantilla Word con logo y encabezado
+- Un script Python que genera el reporte automáticamente
+
+El caso: eres parte de un equipo que revisa contratos OpenAPI antes de publicarlos. Cada revisión requiere el mismo criterio, el mismo formato de reporte y el mismo Word con el logo del equipo. Todo eso vive en la skill.
+
+---
+
+### Requisitos adicionales para esta parte
+
+Además de Claude Code, git y Python 3, necesitas instalar una dependencia:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+El archivo `requirements.txt` contiene:
+```
+python-docx==1.2.0
+```
+
+---
+
+### Estructura de la skill `revisar-api`
+
+```
+.claude/skills/revisar-api/
+├── SKILL.md                        ← instrucciones principales
+├── references/
+│   ├── lineamientos-api.md         ← criterios de revisión del equipo
+│   └── formato-reporte.md          ← esquema JSON que espera el script
+├── scripts/
+│   └── generar_reporte.py          ← genera el Word, no analiza la API
+├── templates/
+│   └── reporte.docx                ← plantilla con logo y encabezado
+└── assets/
+    └── logo.png                    ← logo ficticio, reemplazable
+```
+
+La skill vive en `.claude/skills/` dentro del proyecto — no en `~/.claude/skills/`. Eso significa que **cualquier persona que clone el repo la hereda automáticamente**, sin instalar nada.
+
+---
+
+### Las 8 demos de esta parte
+
+| # | Demo | Lo que demuestra |
+|---|---|---|
+| 1 | La tarea manual | Cuánto contexto tienes que repetir sin una skill |
+| 2 | Crear la skill | Destilar el procedimiento en un SKILL.md |
+| 3 | Entender la estructura | Descripción vs cuerpo, cuándo se carga cada parte |
+| 4 | Probar la reutilización | La skill funciona en sesión nueva sin explicar nada |
+| 5 | Agregar recursos | Referencias, plantilla y logo dentro de la skill |
+| 6 | Agregar código | El script genera el Word, Claude analiza |
+| 7 | Compartir con el equipo | La skill se versiona con git como cualquier archivo |
+| 8 | Comprobar y mejorar | Criterios de calidad y ciclo de mejora |
+
+---
+
+### Paso 1 · Entra a la carpeta
+
+```bash
+cd ejemplo-skills-api
+```
+
+### Paso 2 · Prepara el entorno Python
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Paso 3 · Abre Claude desde la raíz del proyecto
+
+```bash
+claude
+```
+
+La skill `revisar-api` ya está en `.claude/skills/`. Claude la descubre automáticamente porque abres Claude desde la raíz del proyecto.
+
+### Paso 4 · Prueba la skill con el contrato incompleto
+
+```
+/revisar-api Revisa ejemplos/api-incompleta.json y genera un reporte Word.
+Guarda el análisis en resultados/reporte.json y el Word en resultados/reporte.docx.
+Usa el Python .venv/bin/python de este proyecto.
+```
+
+### Paso 5 · Prueba con el contrato mejorado
+
+Abre una sesión nueva y repite con el otro contrato:
+
+```
+/revisar-api Revisa ejemplos/api-mejorada.json y genera un reporte Word.
+Guarda en resultados/reporte-mejorada.json y resultados/reporte-mejorada.docx.
+Usa el Python .venv/bin/python de este proyecto.
+```
+
+El contrato mejorado tiene seguridad global y paginación — la skill debe reconocerlos.
+
+### Paso 6 · Prueba el generador solo, sin Claude
+
+Para verificar que el script funciona independientemente:
+
+```bash
+python3 .claude/skills/revisar-api/scripts/generar_reporte.py \
+  --datos ejemplos/reporte-muestra.json \
+  --salida resultados/prueba.docx
+open resultados/prueba.docx
+```
+
+> Esto solo verifica la generación del Word. No demuestra que Claude haya analizado un contrato.
+
+### Paso 7 · Compartir con el equipo via git
+
+```bash
+git init
+git add .claude/skills/revisar-api requirements.txt .gitignore
+git commit -m "feat: agregar skill de revisión de API"
+```
+
+Quien clone el repo y abra Claude desde la raíz hereda la skill sin instalar nada.
+
+### Paso 8 · Resetear entre demos
+
+```bash
+bash resetear.sh
+```
+
+---
+
+### Diferencia clave con la Parte 1
+
+| | Parte 1 · Facturación | Parte 2 · API |
+|---|---|---|
+| Dónde vive la skill | `~/.claude/skills/` (personal) | `.claude/skills/` (proyecto) |
+| Quién la tiene | Solo tú | Todo el equipo al clonar |
+| Archivos adicionales | Solo SKILL.md | Referencias, plantilla, script, logo |
+| Qué ejecuta | `git diff HEAD` | Script Python que genera un Word |
+
+---
+
+### Lo que NO demuestra esta parte
+
+- No prueba seguridad en producción
+- No ejecuta despliegues ni modifica servicios externos
+- No registra APIs en MuleSoft ni API Gateway
+- El script aplica formato — no analiza OpenAPI ni decide los hallazgos
 
 ---
 
