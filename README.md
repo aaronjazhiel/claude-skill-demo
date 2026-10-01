@@ -1,7 +1,14 @@
 # Claude Skills — Webinar Práctico
 
-Repositorio de demostración para el webinar **"Skills con Claude Code"**.  
-Aquí encontrarás todo lo necesario para seguir las demos en vivo y construir tus propias skills.
+Repositorio de demostración para el webinar **"Skills con Claude Code"**.
+
+En este webinar vas a ver cómo dejar de repetirle lo mismo a Claude cada semana. En 90 minutos, con código corriendo en vivo, vas a entender qué son las skills, cómo funcionan por dentro, y vas a construir la tuya antes de que termine la sesión.
+
+**Lo que vas a poder hacer al terminar:**
+- Entender qué es una skill y cómo se dispara sola
+- Saber por qué falla una skill cuando no se activa
+- Construir tu propia skill destilando una conversación que ya funcionó
+- Diagnosticar problemas cuando algo no carga
 
 ---
 
@@ -17,7 +24,7 @@ Cuando le haces una pregunta a Claude, él lee las descripciones de tus skills y
     └── SKILL.md
 ```
 
-El archivo tiene dos partes:
+El archivo tiene dos partes separadas por `---`:
 
 ```markdown
 ---
@@ -35,6 +42,8 @@ Aquí van las instrucciones para Claude...
 | **Descripción** (arriba del `---`) | **Siempre**, en todas las conversaciones | Permanente pero pequeño |
 | **Cuerpo** (abajo del `---`) | **Solo** al invocarla | Nada mientras no se use |
 
+> Con 50 skills instaladas, lo que está ocupando contexto permanentemente son 50 descripciones de dos líneas. Los 50 cuerpos están en disco, esperando.
+
 ---
 
 ## ¿Por qué son útiles las Skills?
@@ -48,36 +57,192 @@ Aquí van las instrucciones para Claude...
 
 ---
 
-## Ventajas frente a CLAUDE.md
+## Skills vs MCP vs Hooks — cuándo usar cada uno
 
-| | CLAUDE.md | Skill |
-|---|---|---|
-| Cuándo se carga | En **todas** las conversaciones | Solo cuando aplica |
-| Para qué sirve | Lo que hace falta siempre | Lo que hace falta a veces |
-| Costo | Permanente en todas las sesiones | Solo al invocarse |
+Estas tres herramientas conviven y se complementan. No son alternativas entre sí.
 
-> Regla simple: ¿hace falta en cada conversación? → `CLAUDE.md`. ¿Solo en algunas? → Skill.
+### Skill
+**Qué es:** un archivo de instrucciones que le dice a Claude cómo comportarse en situaciones específicas.
+
+**Cuándo usarla:**
+- Cuando tienes un criterio o procedimiento que repites seguido
+- Cuando quieres que Claude actúe diferente según el contexto sin que se lo expliques cada vez
+- Cuando quieres compartir conocimiento del equipo sin que nadie lo instale manualmente
+
+```markdown
+---
+description: Revisa un README y señala las secciones que faltan.
+             Úsala cuando el usuario mencione README o documentación.
+---
+## Instrucciones
+Revisa el README contra las secciones obligatorias del equipo...
+```
 
 ---
 
-## Requisitos
+### MCP (Model Context Protocol)
+**Qué es:** un protocolo que conecta a Claude con herramientas y datos externos — bases de datos, APIs, sistemas de archivos remotos, servicios de terceros.
 
-- **Claude Code** v2.1.233 o más nueva
-- **git** disponible en la terminal
-- **python3** disponible en la terminal
-- Sesión de Claude Code autenticada
+**Cuándo usarlo:**
+- Cuando Claude necesita leer o escribir datos que están fuera de tu máquina
+- Cuando quieres conectar Claude con una API externa (Jira, Notion, Slack, tu base de datos)
+- Cuando necesitas que Claude tenga acceso a información en tiempo real
 
-Verifica tu versión:
+```
+Claude ←→ MCP Server ←→ Base de datos / API externa
+```
 
+**La diferencia clave con Skills:**
+- La skill le dice **cómo** hacer algo
+- El MCP le da **acceso** a algo
+- Muchas veces conviven: la skill es el procedimiento y el MCP es la puerta
+
+---
+
+### Hooks
+**Qué es:** scripts que se ejecutan automáticamente en momentos específicos del ciclo de Claude — antes de una respuesta, después de ejecutar un comando, al guardar un archivo.
+
+**Cuándo usarlos:**
+- Cuando quieres que algo pase **siempre**, sin importar qué le pidas a Claude
+- Para validaciones automáticas (correr linter antes de cada commit)
+- Para logging o auditoría de lo que Claude hace
+- Para notificaciones cuando Claude termina una tarea larga
+
+```bash
+# Ejemplo: hook que corre los tests después de cada cambio de código
+on: post-tool-use
+run: python -m pytest --tb=short
+```
+
+**La diferencia clave con Skills:**
+- La skill se dispara cuando Claude decide que aplica
+- El hook se dispara **siempre**, en el momento que tú defines, sin que Claude decida nada
+
+---
+
+### Tabla comparativa
+
+| | Skill | MCP | Hook |
+|---|---|---|---|
+| **Quién decide cuándo actúa** | Claude, según la descripción | Tú, al configurarlo | Automático, por evento |
+| **Para qué sirve** | Instrucciones y criterio | Acceso a datos externos | Automatización de ciclo |
+| **Dónde vive** | Archivo de texto en una carpeta | Servidor separado | Configuración de Claude |
+| **Cuándo usarlo** | Procedimientos que repites | Conectar con APIs o DBs | Validaciones siempre activas |
+| **Ejemplo** | Revisar un diff, redactar commits | Leer tickets de Jira | Correr tests tras cada cambio |
+
+---
+
+## Instalación de herramientas
+
+### 1 · Node.js (requerido para Claude Code)
+
+**Mac:**
+```bash
+# Con Homebrew (recomendado)
+brew install node
+
+# O descarga el instalador desde
+# https://nodejs.org — versión LTS
+```
+
+**Verifica:**
+```bash
+node --version   # debe ser v18 o más nueva
+npm --version
+```
+
+---
+
+### 2 · Claude Code
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+**Verifica:**
 ```bash
 claude --version
 ```
 
-Si necesitas actualizar:
-
+**Si ya lo tienes y necesitas actualizar:**
 ```bash
 claude update
 ```
+
+> Necesitas v2.1.233 o más nueva. El comando `claude plugin validate` de la demo 6 no existe en versiones anteriores.
+
+---
+
+### 3 · git
+
+**Mac:**
+```bash
+# Con Homebrew
+brew install git
+
+# O instala Xcode Command Line Tools
+xcode-select --install
+```
+
+**Verifica:**
+```bash
+git --version
+```
+
+---
+
+### 4 · Python 3
+
+**Mac:**
+```bash
+brew install python3
+```
+
+**Verifica:**
+```bash
+python3 --version   # debe ser 3.8 o más nueva
+```
+
+---
+
+### 5 · Autenticar Claude Code
+
+```bash
+claude
+```
+
+La primera vez te pide que inicies sesión. Necesitas una cuenta de Claude con plan **Pro, Max, Team o Enterprise**.
+
+---
+
+## Introducción a las demos
+
+Este webinar tiene **6 demostraciones en vivo**, todas con código corriendo en pantalla. No hay diapositivas de relleno — cada demo enseña una sola cosa y la demuestra antes de explicarla.
+
+El hilo de las 6 demos:
+
+```
+Existe → Cómo funciona → Por qué falla → Cómo la construyes → Cómo la potencias → Cómo la diagnosticas
+```
+
+### El escenario
+
+Eres un desarrollador. Tienes un repositorio Python con un calculador de facturas. Un martes cualquiera agregaste cupones de descuento — 12 líneas de cambio. Antes de subirlo quieres que alguien lo revise, pero no hay nadie disponible.
+
+Ese es el punto de partida de todas las demos.
+
+### Las 6 demos
+
+| # | Minuto | Demo | Lo que demuestra |
+|---|---|---|---|
+| 1 | 0:02 | La skill en tres minutos | Una skill funcionando antes de saber qué es |
+| 2 | 0:15 | Anatomía de un SKILL.md | Por qué la descripción y el cuerpo son distintos |
+| 3 | 0:27 | La descripción A/B | La descripción es lo único que decide si una skill existe |
+| **4** | **0:47** | **El destilador** | Cómo construyes tu propia skill mañana |
+| 5 | 1:05 | Multiarchivo y script | Una skill puede ejecutar código sin pedir permiso |
+| 6 | 1:12 | La skill que no funciona | Cómo diagnosticar, y que la peor falla no la marca ninguna herramienta |
+
+> **La demo 4 es la más importante.** Es lo único del webinar que puedes usar esa misma tarde.
 
 ---
 
@@ -151,7 +316,7 @@ La skill `revisando-cambios` se dispara sola, lee el diff automáticamente y ent
 cat ~/.claude/skills/revisando-cambios/SKILL.md
 ```
 
-Verás que la línea `!`git diff HEAD`` es lo que hace que Claude lea el diff solo — se ejecuta automáticamente cuando la skill entra.
+Verás la línea `!`git diff HEAD`` — eso es lo que hace que Claude lea el diff solo. Se ejecuta automáticamente cuando la skill entra.
 
 ### Paso 8 · Ve las skills instaladas
 
